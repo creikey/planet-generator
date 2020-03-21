@@ -8,20 +8,22 @@ var settings: Dictionary = {
 	"clouds_noise_seed": ["int", 0],
 	"clouds_noise_settings": ["noise_settings", default_noise_settings.duplicate()],
 	
-	"grass": ["color", Color()],
-	"shore": ["color", Color()],
-	"ocean": ["color", Color()],
-	"clouds": ["color", Color()],
+	"grass": ["color", Color(0, 1, 0)],
+	"shore": ["color", Color("7cd67c")],
+	"ocean": ["color", Color(0.0, 0.0, 1.0)],
+	"clouds": ["color", Color(1.0, 1.0, 1.0)],
 	
 	"grass_threshold": ["float", 0.562],
 	"shore_threshold": ["float", 0.513],
 	"clouds_threshold": ["float", 0.565],
+
+	"has_clouds": ["bool", false],
+
+	"grass_scale": ["vec2", Vector2(1, 1)],
+	"clouds_scale": ["vec2", Vector2(1, 1)],
 	
-	"grass_scale": ["vec2", Vector2()],
-	"clouds_scale": ["vec2", Vector2()],
-	
-	"planet_rotate_speed": ["vec2", Vector2()],
-	"clouds_rotate_speed": ["vec2", Vector2()],
+	"planet_rotate_speed": ["vec2", Vector2(1, 1)],
+	"clouds_rotate_speed": ["vec2", Vector2(1, 1)],
 }
 
 var planet_rotate_speed: Vector2 = Vector2()
@@ -60,6 +62,8 @@ func apply_settings():
 	planet_material.set_shader_param("shore_threshold", _get_setting("shore_threshold"))
 	cloud_material.set_shader_param("clouds_threshold", _get_setting("clouds_threshold"))
 
+	$Clouds.visible = _get_setting("has_clouds")
+
 	planet_material.set_shader_param("uv_scale", _get_setting("grass_scale"))
 	cloud_material.set_shader_param("uv_scale", _get_setting("clouds_scale"))
 	
@@ -74,5 +78,5 @@ func _apply_noise_settings(noise_texture: NoiseTexture, settings: Array):
 
 func _process(delta):
 	time += delta/20.0
-	$Planet.material_override.set_shader_param("uv_offset", Vector2(time, 0.0))
-	$Clouds.material_override.set_shader_param("uv_offset", Vector2(time/2.0, time/4.0))
+	$Planet.material_override.set_shader_param("uv_offset", planet_rotate_speed*time)
+	$Clouds.material_override.set_shader_param("uv_offset", clouds_rotate_speed*time)

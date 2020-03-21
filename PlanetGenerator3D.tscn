@@ -2,7 +2,6 @@
 
 [ext_resource path="res://planet-generator/PlanetGenerator3D.gd" type="Script" id=1]
 
-
 [sub_resource type="Shader" id=1]
 code = "shader_type spatial;
 render_mode blend_mix,depth_draw_opaque,cull_back,diffuse_burley,specular_schlick_ggx,unshaded;
@@ -17,7 +16,7 @@ uniform float grass_threshold = 0.5;
 uniform float shore_threshold = 0.4;
 
 void vertex() {
-	UV=UV*uv_scale + uv_offset;
+	UV=UV*uv_scale + uv_offset*uv_scale*0.5;
 }
 
 
