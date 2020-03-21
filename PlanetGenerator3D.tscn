@@ -1,0 +1,120 @@
+[gd_scene load_steps=12 format=2]
+
+[ext_resource path="res://planet-generator/PlanetGenerator3D.gd" type="Script" id=1]
+
+
+[sub_resource type="Shader" id=1]
+code = "shader_type spatial;
+render_mode blend_mix,depth_draw_opaque,cull_back,diffuse_burley,specular_schlick_ggx,unshaded;
+
+uniform vec2 uv_offset = vec2(0.0);
+uniform vec2 uv_scale = vec2(1.0);
+uniform vec4 grass_color : hint_color;
+uniform vec4 shore_color : hint_color;
+uniform vec4 ocean_color : hint_color;
+uniform sampler2D grass;
+uniform float grass_threshold = 0.5;
+uniform float shore_threshold = 0.4;
+
+void vertex() {
+	UV=UV*uv_scale + uv_offset;
+}
+
+
+
+
+void fragment() {
+	float has_grass = step(grass_threshold, texture(grass, UV).r);
+	float has_shore = step(shore_threshold, texture(grass, UV).r);
+	
+	vec4 col = mix(ocean_color, shore_color, has_shore);
+	col = mix(col, grass_color, has_grass);
+	
+	ALBEDO = col.rgb;
+}
+"
+
+[sub_resource type="OpenSimplexNoise" id=2]
+seed = 2551
+
+[sub_resource type="NoiseTexture" id=3]
+seamless = true
+noise = SubResource( 2 )
+
+[sub_resource type="ShaderMaterial" id=4]
+shader = SubResource( 1 )
+shader_param/uv_offset = Vector2( 0, 0 )
+shader_param/uv_scale = Vector2( 1, 1 )
+shader_param/grass_color = Color( 0.176471, 0.501961, 0.439216, 1 )
+shader_param/shore_color = Color( 0.215686, 0.580392, 0.431373, 1 )
+shader_param/ocean_color = Color( 0.478431, 0.635294, 0.807843, 1 )
+shader_param/grass_threshold = 0.562
+shader_param/shore_threshold = 0.513
+shader_param/grass = SubResource( 3 )
+
+[sub_resource type="SphereMesh" id=5]
+
+[sub_resource type="Shader" id=6]
+code = "shader_type spatial;
+render_mode blend_mix,depth_draw_opaque,cull_back,diffuse_burley,specular_schlick_ggx,unshaded;
+
+uniform vec2 uv_offset = vec2(0.0);
+uniform vec4 clouds_color : hint_color;
+uniform sampler2D clouds;
+uniform float clouds_threshold = 0.5;
+uniform vec2 uv_scale = vec2(2.0);
+
+void vertex() {
+	UV=UV*uv_scale + uv_offset;
+}
+
+
+
+
+void fragment() {
+	float has_clouds = step(clouds_threshold, texture(clouds, UV).r);
+	
+	vec4 col = mix(vec4(0.0), clouds_color, has_clouds);
+	
+	ALBEDO = col.rgb;
+	ALPHA = col.a;
+}
+"
+
+[sub_resource type="OpenSimplexNoise" id=7]
+seed = 1127
+period = 78.4
+persistence = 0.405
+lacunarity = 3.2
+
+[sub_resource type="NoiseTexture" id=8]
+seamless = true
+noise = SubResource( 7 )
+
+[sub_resource type="ShaderMaterial" id=9]
+shader = SubResource( 6 )
+shader_param/uv_offset = Vector2( 0, 0 )
+shader_param/clouds_color = Color( 1, 1, 1, 1 )
+shader_param/clouds_threshold = 0.565
+shader_param/uv_scale = Vector2( 4, 4 )
+shader_param/clouds = SubResource( 8 )
+
+[sub_resource type="SphereMesh" id=10]
+radius = 1.1
+height = 2.2
+
+[node name="PlanetGenerator3D" type="Spatial"]
+script = ExtResource( 1 )
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.14607 )
+
+[node name="Planet" type="MeshInstance" parent="."]
+material_override = SubResource( 4 )
+mesh = SubResource( 5 )
+material/0 = null
+
+[node name="Clouds" type="MeshInstance" parent="."]
+material_override = SubResource( 9 )
+mesh = SubResource( 10 )
+material/0 = null
