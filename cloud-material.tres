@@ -1,0 +1,54 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=2]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type canvas_item;
+
+uniform vec2 uv_offset = vec2(0.0);
+
+uniform bool use_custom_image = false;
+uniform sampler2D custom_image;
+
+uniform vec4 clouds_color : hint_color;
+uniform sampler2D clouds;
+uniform float clouds_threshold = 0.5;
+uniform vec2 uv_scale = vec2(2.0);
+
+void vertex() {
+	UV=UV*uv_scale + uv_offset;
+}
+
+
+
+
+void fragment() {
+	if(use_custom_image) {
+		vec4 image_data = texture(custom_image, UV);
+		COLOR = image_data.rgba;
+	} else {
+		float has_clouds = step(clouds_threshold, texture(clouds, UV).r);
+		
+		vec4 col = mix(vec4(0.0), clouds_color, has_clouds);
+		
+		COLOR = col;
+	}
+}
+"
+
+[sub_resource type="OpenSimplexNoise" id=2]
+seed = 1127
+period = 78.4
+persistence = 0.405
+lacunarity = 3.2
+
+[sub_resource type="NoiseTexture" id=3]
+seamless = true
+noise = SubResource( 2 )
+
+[resource]
+shader = SubResource( 1 )
+shader_param/uv_offset = Vector2( 0, 0 )
+shader_param/use_custom_image = false
+shader_param/clouds_color = Color( 1, 1, 1, 1 )
+shader_param/clouds_threshold = 0.565
+shader_param/uv_scale = Vector2( 4, 4 )
+shader_param/clouds = SubResource( 3 )

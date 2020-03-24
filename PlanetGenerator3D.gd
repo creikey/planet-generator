@@ -26,15 +26,18 @@ var settings: Dictionary = {
 	"clouds_rotate_speed": ["vec2", Vector2(1, 1)],
 }
 
-var planet_rotate_speed: Vector2 = Vector2()
-var clouds_rotate_speed: Vector2 = Vector2()
+var planet_rotate_speed: Vector3 = Vector3(1, 1, 0)
+var clouds_rotate_speed: Vector3 = Vector3(1, 1, 0)
+
+onready var planet_quad = $PlanetViewport/CanvasLayer/ColorRect
+onready var clouds_quad = $CloudsViewport/CanvasLayer/ColorRect
 
 func _ready():
 	# make material unique
-	var planet_material: ShaderMaterial = $Planet.material_override.duplicate(true)
-	$Planet.material_override = planet_material
-	var cloud_material: ShaderMaterial = $Clouds.material_override.duplicate(true)
-	$Clouds.material_override = cloud_material
+	var planet_material: ShaderMaterial = planet_quad.material.duplicate(true)
+	planet_quad.material = planet_material
+	var cloud_material: ShaderMaterial = clouds_quad.material.duplicate(true)
+	clouds_quad.material = cloud_material
 	
 	apply_settings()
 
@@ -42,17 +45,17 @@ func _get_setting(setting_name: String):
 	return settings[setting_name][1]
 
 func apply_settings():
-	var planet_material: ShaderMaterial = $Planet.material_override
-	var cloud_material: ShaderMaterial = $Clouds.material_override
-	
+	var planet_material: ShaderMaterial = planet_quad.material
+	var cloud_material: ShaderMaterial = clouds_quad.material
+
 	var grass_texture: NoiseTexture = planet_material.get_shader_param("grass")
 	grass_texture.noise.seed = _get_setting("planet_noise_seed")
 	_apply_noise_settings(grass_texture, _get_setting("planet_noise_settings"))
-	
+
 	var cloud_texture: NoiseTexture = cloud_material.get_shader_param("clouds")
 	cloud_texture.noise.seed = _get_setting("clouds_noise_seed")
 	_apply_noise_settings(cloud_texture, _get_setting("clouds_noise_settings"))
-	
+
 	planet_material.set_shader_param("grass_color", _get_setting("grass"))
 	planet_material.set_shader_param("shore_color", _get_setting("shore"))
 	planet_material.set_shader_param("ocean_color", _get_setting("ocean"))
@@ -62,13 +65,16 @@ func apply_settings():
 	planet_material.set_shader_param("shore_threshold", _get_setting("shore_threshold"))
 	cloud_material.set_shader_param("clouds_threshold", _get_setting("clouds_threshold"))
 
-	$Clouds.visible = _get_setting("has_clouds")
+	$CloudsMesh.visible = _get_setting("has_clouds")
 
 	planet_material.set_shader_param("uv_scale", _get_setting("grass_scale"))
 	cloud_material.set_shader_param("uv_scale", _get_setting("clouds_scale"))
-	
-	planet_rotate_speed = _get_setting("planet_rotate_speed")
-	clouds_rotate_speed = _get_setting("clouds_rotate_speed")
+
+	planet_rotate_speed = _uv2d_to_3d(_get_setting("planet_rotate_speed"))
+	clouds_rotate_speed = _uv2d_to_3d(_get_setting("clouds_rotate_speed"))
+
+func _uv2d_to_3d(in_uv: Vector2) -> Vector3:
+	return Vector3(in_uv.x, in_uv.y, 0.0);
 
 func _apply_noise_settings(noise_texture: NoiseTexture, settings: Array):
 	noise_texture.noise.octaves = settings[0]
@@ -78,5 +84,5 @@ func _apply_noise_settings(noise_texture: NoiseTexture, settings: Array):
 
 func _process(delta):
 	time += delta/20.0
-	$Planet.material_override.set_shader_param("uv_offset", planet_rotate_speed*time)
-	$Clouds.material_override.set_shader_param("uv_offset", clouds_rotate_speed*time)
+	$PlanetMesh.material_override.uv1_offset = planet_rotate_speed*time
+	$CloudsMesh.material_override.uv1_offset = clouds_rotate_speed*time
