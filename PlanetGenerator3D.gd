@@ -2,7 +2,10 @@ extends Spatial
 
 var time := 0.0
 var default_noise_settings: Array = [3, 64.0, 0.5, 2.0]
-var settings: Dictionary = {
+onready var settings: Dictionary = {
+	"custom_planet_image": ["image", $PlanetViewport],
+	"custom_clouds_image": ["image", $CloudsViewport],
+	
 	"planet_noise_seed": ["int", 0],
 	"planet_noise_settings": ["noise_settings", default_noise_settings.duplicate()],
 	"clouds_noise_seed": ["int", 0],
@@ -44,7 +47,30 @@ func _ready():
 func _get_setting(setting_name: String):
 	return settings[setting_name][1]
 
+func create_image_texture_from_data_dict(data_dict: Dictionary) -> ImageTexture:
+	var to_return: ImageTexture = ImageTexture.new()
+	var img: Image = Image.new()
+	img.data = data_dict
+	to_return.create_from_image(img)
+	to_return.flags = 2 # get rid of filter and mipmaps
+	return to_return
+	
+
 func apply_settings():
+	if _get_setting("custom_planet_image") is Dictionary:
+		$PlanetMesh.material_override.albedo_texture = create_image_texture_from_data_dict(_get_setting("custom_planet_image"))
+	else:
+		if not _get_setting("custom_planet_image") is Viewport:
+			settings["custom_planet_image"][1] = $PlanetViewport
+		$PlanetMesh.material_override.albedo_texture = $PlanetViewport.get_texture()
+	
+	if _get_setting("custom_clouds_image") is Dictionary:
+		$CloudsMesh.material_override.albedo_texture = create_image_texture_from_data_dict(_get_setting("custom_clouds_image"))
+	else:
+		if not _get_setting("custom_clouds_image") is Viewport:
+			settings["custom_clouds_image"][1] = $CloudsViewport
+		$CloudsMesh.material_override.albedo_texture = $CloudsViewport.get_texture()
+	
 	var planet_material: ShaderMaterial = planet_quad.material
 	var cloud_material: ShaderMaterial = clouds_quad.material
 
