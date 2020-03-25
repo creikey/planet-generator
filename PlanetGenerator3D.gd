@@ -51,6 +51,7 @@ func create_image_texture_from_data_dict(data_dict: Dictionary) -> ImageTexture:
 	var to_return: ImageTexture = ImageTexture.new()
 	var img: Image = Image.new()
 	img.data = data_dict
+	img.flip_y()
 	to_return.create_from_image(img)
 	to_return.flags = 2 # get rid of filter and mipmaps
 	return to_return
