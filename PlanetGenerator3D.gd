@@ -3,6 +3,8 @@ extends Spatial
 var time := 0.0
 var default_noise_settings: Array = [3, 64.0, 0.5, 2.0]
 onready var settings: Dictionary = {
+	"size_scale": ["float", 0.5],
+	
 	"custom_planet_image": ["image", $PlanetViewport],
 	"custom_clouds_image": ["image", $CloudsViewport],
 	
@@ -55,9 +57,15 @@ func create_image_texture_from_data_dict(data_dict: Dictionary) -> ImageTexture:
 	to_return.create_from_image(img)
 	to_return.flags = 2 # get rid of filter and mipmaps
 	return to_return
-	
 
 func apply_settings():
+#	scale.x = 2.0*_get_setting("size_scale")
+#	scale.y = scale.x
+#	scale.z = scale.x
+	var sprite: Sprite = get_parent().get_parent().get_node("Sprite")
+	sprite.scale.x = _get_setting("size_scale")*3.0*2.0
+	sprite.scale.y = _get_setting("size_scale")*3.0*2.0
+	
 	if _get_setting("custom_planet_image") is Dictionary:
 		$PlanetMesh.material_override.albedo_texture = create_image_texture_from_data_dict(_get_setting("custom_planet_image"))
 	else:
